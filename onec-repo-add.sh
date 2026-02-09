@@ -3,7 +3,8 @@
 # It automatically detects your distribution and adds the repository with GPG key.
 
 REPO_HOST="edu-ks-beringpro.1cit.com"
-REPO_PATH="/onec/8.5.1.1150_x86-64"
+REPO_PATH="/onec"
+REPO_CODENAME="8.5.1.1150_x86-64"
 REPO_URL="ftp://${REPO_HOST}${REPO_PATH}"
 PRODUCT_NAME="1C Enterprise Repository"
 LISTNAME="onec-enterprise"
@@ -73,23 +74,54 @@ keyfile=$(mktemp)
 echo "$KEY_CONTENT" > "$keyfile"
 
 # Import GPG key
-if [ -d /etc/apt/trusted.gpg.d ]; then
-	# Modern Debian/Ubuntu
-	gpg --dearmor < "$keyfile" > "/etc/apt/trusted.gpg.d/${LISTNAME}.gpg"
+KEYRING_PATH=""
+if [ -d /etc/apt/keyrings ]; then
+	# Modern Debian/Ubuntu (preferred method)
+	mkdir -p /etc/apt/keyrings
+	if gpg --dearmor < "$keyfile" > "/etc/apt/keyrings/${LISTNAME}.gpg" 2>/dev/null; then
+		chmod 644 "/etc/apt/keyrings/${LISTNAME}.gpg"
+		KEYRING_PATH="/etc/apt/keyrings/${LISTNAME}.gpg"
+	fi
+	rm -f "$keyfile"
+elif [ -d /etc/apt/trusted.gpg.d ]; then
+	# Alternative modern method - always use signed-by even with trusted.gpg.d
+	if gpg --dearmor < "$keyfile" > "/etc/apt/trusted.gpg.d/${LISTNAME}.gpg" 2>/dev/null; then
+		chmod 644 "/etc/apt/trusted.gpg.d/${LISTNAME}.gpg"
+		KEYRING_PATH="/etc/apt/trusted.gpg.d/${LISTNAME}.gpg"
+	fi
 	rm -f "$keyfile"
 elif command -v apt-key > /dev/null 2>&1; then
 	# Older systems with apt-key
 	apt-key add "$keyfile" > /dev/null 2>&1
 	rm -f "$keyfile"
+	# For apt-key, don't use signed-by
+	KEYRING_PATH=""
 else
 	echo "Error: Cannot import GPG key. apt-key or /etc/apt/trusted.gpg.d not found" >&2
 	rm -f "$keyfile"
 	exit 1
 fi
 
+# Verify key was imported (only if we tried to import to a file)
+if [ -n "$KEYRING_PATH" ] && [ ! -f "$KEYRING_PATH" ]; then
+	echo "Error: Failed to import GPG key to $KEYRING_PATH" >&2
+	exit 1
+fi
+
 # Add repository
 echo "# Repository for '$PRODUCT_NAME'" > "$repofile"
-echo "deb ${REPO_URL} main contrib non-free non-free-firmware" >> "${repofile}"
+
+# Debug: check KEYRING_PATH
+if [ -z "$KEYRING_PATH" ]; then
+	echo "Warning: KEYRING_PATH is empty, using fallback method" >&2
+	echo "deb ${REPO_URL} ${REPO_CODENAME} main contrib non-free non-free-firmware" >> "${repofile}"
+elif [ ! -f "$KEYRING_PATH" ]; then
+	echo "Warning: Keyring file not found at $KEYRING_PATH, using fallback method" >&2
+	echo "deb ${REPO_URL} ${REPO_CODENAME} main contrib non-free non-free-firmware" >> "${repofile}"
+else
+	# Use signed-by for modern Debian/Ubuntu
+	echo "deb [signed-by=${KEYRING_PATH}] ${REPO_URL} ${REPO_CODENAME} main contrib non-free non-free-firmware" >> "${repofile}"
+fi
 
 echo "Repository added successfully!"
 echo "Repository file: ${repofile}"
