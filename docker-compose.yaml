@@ -13,9 +13,12 @@ services:
     volumes:
       - ./dist:/srv/ftp/onec
       - ./distr:/tmp/distr:ro
+    env_file:
+      - .env
     environment:
-      - FTP_USER=anonymous
-      - FTP_PASS=
+      - FTP_USER=${FTP_USER:-anonymous}
+      - FTP_PASS=${FTP_PASS:-}
+      - PASV_ADDRESS=${PASV_ADDRESS}
     command: /usr/local/bin/start-ftp.sh
     restart: unless-stopped
     networks:

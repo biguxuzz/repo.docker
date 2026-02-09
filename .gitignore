@@ -1,5 +1,6 @@
 # Docker
 distr/
+dist/
 *.log
 
 # Временные файлы
@@ -10,3 +11,6 @@ distr/
 *.gpg
 *.key
 !repo_gpg.key
+
+# Environment variables
+.env

@@ -56,11 +56,17 @@ fi
 # Extract key from script (from BEGIN to END inclusive)
 KEY_CONTENT=$(awk "/^${KEY_START}$/,/^${KEY_END}$/" "$SCRIPT_PATH" 2>/dev/null)
 
-if [ -z "$KEY_CONTENT" ] || ! echo "$KEY_CONTENT" | grep -q "$KEY_START"; then
-	echo "Error: GPG key not found in script" >&2
-	echo "Please ensure the script contains a valid GPG public key block" >&2
-	exit 1
-fi
+# Check if key was found (use case statement to avoid grep issues with strings starting with dashes)
+case "$KEY_CONTENT" in
+	*"$KEY_START"*)
+		# Key found, continue
+		;;
+	*)
+		echo "Error: GPG key not found in script" >&2
+		echo "Please ensure the script contains a valid GPG public key block" >&2
+		exit 1
+		;;
+esac
 
 # Save key to temporary file
 keyfile=$(mktemp)

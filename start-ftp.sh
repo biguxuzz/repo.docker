@@ -74,27 +74,37 @@ if [ -f /srv/ftp/onec/repo_gpg.key ] && [ -f /srv/ftp/onec/onec-repo-add.sh ]; t
     # Используем Python для надежной замены ключа
     python3 << 'PYTHON_SCRIPT' > /tmp/onec-repo-add-final.sh
 import sys
+import re
 
 # Читаем оригинальный скрипт
 with open('/srv/ftp/onec/onec-repo-add.sh', 'r') as f:
     script_content = f.read()
 
-# Читаем GPG ключ
+# Читаем GPG ключ (он уже содержит маркеры BEGIN и END)
 with open('/srv/ftp/onec/repo_gpg.key', 'r') as f:
-    gpg_key = f.read().strip()
+    gpg_key_full = f.read().strip()
 
-# Заменяем плейсхолдер на реальный ключ
-# Ищем блок между BEGIN и END, заменяем содержимое между ними
-import re
-pattern = r'(-----BEGIN PGP PUBLIC KEY BLOCK-----\n)(.*?)(\n-----END PGP PUBLIC KEY BLOCK-----)'
-replacement = r'\1' + gpg_key + r'\3'
+# Заменяем плейсхолдер GPG ключа на реальный ключ
+# Ищем блок после комментария "# GPG key will be inserted here" и заменяем весь блок включая маркеры
+placeholder_pattern = r'# GPG key will be inserted here.*?\n-----BEGIN PGP PUBLIC KEY BLOCK-----\n.*?\n-----END PGP PUBLIC KEY BLOCK-----'
+result = re.sub(placeholder_pattern, gpg_key_full, script_content, flags=re.DOTALL)
 
-result = re.sub(pattern, replacement, script_content, flags=re.DOTALL)
-
-# Если замена не произошла (плейсхолдер не найден), вставляем ключ перед END
+# Если замена не произошла, пробуем найти блок без комментария (но не переменные KEY_START/KEY_END)
 if result == script_content:
-    pattern = r'(-----BEGIN PGP PUBLIC KEY BLOCK-----\n)(.*?)(\n-----END PGP PUBLIC KEY BLOCK-----)'
-    result = re.sub(pattern, r'\1' + gpg_key + r'\3', script_content, flags=re.DOTALL)
+    # Ищем блок, который находится после строки с комментарием (не в определении переменных)
+    # Используем более точный паттерн - блок после строки 98 (после echo "apt install")
+    pattern = r'(echo "  apt install.*?\n\n)(# GPG key will be inserted here.*?\n)?-----BEGIN PGP PUBLIC KEY BLOCK-----\n.*?\n-----END PGP PUBLIC KEY BLOCK-----'
+    match = re.search(pattern, script_content, flags=re.DOTALL)
+    if match:
+        # Заменяем только блок с маркерами, сохраняя текст до него
+        result = re.sub(r'-----BEGIN PGP PUBLIC KEY BLOCK-----\n.*?\n-----END PGP PUBLIC KEY BLOCK-----', gpg_key_full, script_content, flags=re.DOTALL, count=1)
+    else:
+        # Последняя попытка - заменяем последний блок с маркерами (не первый, который в переменных)
+        blocks = list(re.finditer(r'-----BEGIN PGP PUBLIC KEY BLOCK-----.*?-----END PGP PUBLIC KEY BLOCK-----', script_content, flags=re.DOTALL))
+        if len(blocks) > 1:
+            # Заменяем последний блок
+            last_block = blocks[-1]
+            result = script_content[:last_block.start()] + gpg_key_full + script_content[last_block.end():]
 
 sys.stdout.write(result)
 PYTHON_SCRIPT
@@ -108,10 +118,18 @@ fi
 # Установка прав доступа
 chown -R ftp:ftp /srv/ftp 2>/dev/null || chmod -R 755 /srv/ftp
 chmod -R 755 /srv/ftp/onec
+# Для анонимного FTP корневая директория должна быть только для чтения
+chmod 555 /srv/ftp
 
 echo "Repository initialization completed"
 echo "GPG public key location: /srv/ftp/onec/repo_gpg.key"
 echo "Repository URL: ftp://edu-ks-beringpro.1cit.com/onec/8.5.1.1150_x86-64"
+
+# Настройка pasv_address если указана переменная окружения
+if [ -n "$PASV_ADDRESS" ]; then
+    echo "Setting PASV_ADDRESS to $PASV_ADDRESS"
+    sed -i "s|^pasv_address=.*|pasv_address=$PASV_ADDRESS|" /etc/vsftpd.conf
+fi
 
 # Запуск vsftpd в foreground режиме
 echo "Starting vsftpd..."
