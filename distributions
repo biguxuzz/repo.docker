@@ -1,0 +1,8 @@
+Origin: Debian
+Suite: stable
+Codename: 8.5.1.1150_x86-64
+Version: 8.5.1.1150
+Architectures: amd64
+Components: main contrib non-free non-free-firmware
+SignWith: yes
+Description: Custom repository for 1C Enterprise packages

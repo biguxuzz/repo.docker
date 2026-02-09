@@ -1,0 +1,12 @@
+# Docker
+distr/
+*.log
+
+# Временные файлы
+*.tmp
+*.bak
+
+# GPG ключи (не коммитить приватные ключи)
+*.gpg
+*.key
+!repo_gpg.key

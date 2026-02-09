@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  ftp-repo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ftp-repository
+    ports:
+      - "21:21"
+      - "20:20"
+      - "21100-21110:21100-21110"
+    volumes:
+      - ./distr:/tmp/distr:ro
+    environment:
+      - FTP_USER=anonymous
+      - FTP_PASS=
+    command: /usr/local/bin/start-ftp.sh
+    restart: unless-stopped
+    networks:
+      - repo-network
+
+networks:
+  repo-network:
+    driver: bridge
