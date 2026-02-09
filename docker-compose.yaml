@@ -11,6 +11,7 @@ services:
       - "20:20"
       - "21100-21110:21100-21110"
     volumes:
+      - ./dist:/srv/ftp/onec
       - ./distr:/tmp/distr:ro
     environment:
       - FTP_USER=anonymous

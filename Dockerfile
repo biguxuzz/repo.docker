@@ -7,16 +7,18 @@ RUN apt-get update && \
     reprepro \
     gnupg2 \
     curl \
+    python3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Создание директорий для репозитория
-RUN mkdir -p /srv/ftp/astra/conf && \
-    mkdir -p /srv/ftp/astra/db && \
+RUN mkdir -p /srv/ftp/onec/conf && \
+    mkdir -p /srv/ftp/onec/db && \
     mkdir -p /var/run/vsftpd/empty
 
 # Копирование конфигурационных файлов
 COPY vsftpd.conf /etc/vsftpd.conf
-COPY distributions /srv/ftp/astra/conf/distributions
+COPY distributions /srv/ftp/onec/conf/distributions
+COPY onec-repo-add.sh /srv/ftp/onec/onec-repo-add.sh
 COPY start-ftp.sh /usr/local/bin/start-ftp.sh
 
 # Установка прав на скрипт
