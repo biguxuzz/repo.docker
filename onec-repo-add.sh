@@ -5,7 +5,7 @@
 REPO_HOST="edu-ks-beringpro.1cit.com"
 REPO_PATH="/onec"
 REPO_CODENAME="8.5.1.1150_x86-64"
-REPO_URL="ftp://${REPO_HOST}${REPO_PATH}"
+REPO_URL="http://${REPO_HOST}${REPO_PATH}"
 PRODUCT_NAME="1C Enterprise Repository"
 LISTNAME="onec-enterprise"
 
@@ -134,7 +134,7 @@ echo "Repository is ready to use!"
 echo "You can now install packages from the repository using:"
 echo "  apt install <package-name>"
 
-# GPG key will be inserted here by start-ftp.sh during container initialization
+# GPG key will be inserted here by start-http.sh during container initialization
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 (Key will be inserted here automatically)
 -----END PGP PUBLIC KEY BLOCK-----
