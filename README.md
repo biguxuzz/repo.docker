@@ -24,13 +24,13 @@
 
 3. Репозиторий будет доступен по адресу:
    ```
-   http://edu-ks-beringpro.1cit.com/onec/8.5.1.1150_x86-64
+   http://secret-repo.1cit.com/onec/8.5.1.1150_x86-64
    ```
 
 4. Для добавления репозитория в систему используйте автоматический скрипт:
    ```bash
    # Скачайте скрипт с HTTP сервера
-   curl http://edu-ks-beringpro.1cit.com/onec/onec-repo-add.sh -o onec-repo-add.sh
+   curl http://secret-repo.1cit.com/onec/onec-repo-add.sh -o onec-repo-add.sh
    
    # Запустите скрипт (требуются права root)
    sudo bash onec-repo-add.sh
@@ -47,10 +47,10 @@
    Если вы предпочитаете добавить репозиторий вручную:
    ```bash
    # Добавьте репозиторий в /etc/apt/sources.list.d/onec-enterprise.list
-   echo "deb http://edu-ks-beringpro.1cit.com/onec/8.5.1.1150_x86-64 main contrib non-free non-free-firmware" | sudo tee /etc/apt/sources.list.d/onec-enterprise.list
+   echo "deb http://secret-repo.1cit.com/onec/8.5.1.1150_x86-64 main contrib non-free non-free-firmware" | sudo tee /etc/apt/sources.list.d/onec-enterprise.list
    
    # Добавьте GPG ключ (современный способ)
-   curl http://edu-ks-beringpro.1cit.com/onec/repo_gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/onec-enterprise.gpg
+   curl http://secret-repo.1cit.com/onec/repo_gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/onec-enterprise.gpg
    sudo chmod 644 /etc/apt/keyrings/onec-enterprise.gpg
    
    # Обновите список пакетов

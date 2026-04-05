@@ -21,8 +21,9 @@ COPY distributions /var/www/repo/onec/conf/distributions
 COPY onec-repo-add.sh /var/www/repo/onec/onec-repo-add.sh
 COPY start-http.sh /usr/local/bin/start-http.sh
 
-# Установка прав на скрипт
-RUN chmod +x /usr/local/bin/start-http.sh
+# CRLF → LF (иначе shebang ломается при сборке из Windows: exec ... no such file)
+RUN sed -i 's/\r$//' /usr/local/bin/start-http.sh /var/www/repo/onec/onec-repo-add.sh && \
+    chmod +x /usr/local/bin/start-http.sh /var/www/repo/onec/onec-repo-add.sh
 
 # Открытие портов
 EXPOSE 80

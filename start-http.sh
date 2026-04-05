@@ -118,7 +118,7 @@ chmod -R 755 /var/www/repo/onec
 
 echo "Repository initialization completed"
 echo "GPG public key location: /var/www/repo/onec/repo_gpg.key"
-echo "Repository URL: http://edu-ks-beringpro.1cit.com/onec/8.5.1.1150_x86-64"
+echo "Repository URL: http://secret-repo.1cit.com/onec/8.5.1.1150_x86-64"
 
 # Запуск nginx в foreground режиме
 echo "Starting nginx..."

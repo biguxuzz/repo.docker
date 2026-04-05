@@ -2,7 +2,7 @@
 # This script adds 1C Enterprise repository to your package manager.
 # It automatically detects your distribution and adds the repository with GPG key.
 
-REPO_HOST="edu-ks-beringpro.1cit.com"
+REPO_HOST="secret-repo.1cit.com"
 REPO_PATH="/onec"
 REPO_CODENAME="8.5.1.1150_x86-64"
 REPO_URL="http://${REPO_HOST}${REPO_PATH}"
