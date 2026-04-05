@@ -110,17 +110,12 @@ fi
 
 # Add repository
 echo "# Repository for '$PRODUCT_NAME'" > "$repofile"
-
-# Debug: check KEYRING_PATH
-if [ -z "$KEYRING_PATH" ]; then
-	echo "Warning: KEYRING_PATH is empty, using fallback method" >&2
-	echo "deb ${REPO_URL} ${REPO_CODENAME} main contrib non-free non-free-firmware" >> "${repofile}"
-elif [ ! -f "$KEYRING_PATH" ]; then
-	echo "Warning: Keyring file not found at $KEYRING_PATH, using fallback method" >&2
-	echo "deb ${REPO_URL} ${REPO_CODENAME} main contrib non-free non-free-firmware" >> "${repofile}"
-else
+if [ -n "$KEYRING_PATH" ] && [ -f "$KEYRING_PATH" ]; then
 	# Use signed-by for modern Debian/Ubuntu
 	echo "deb [signed-by=${KEYRING_PATH}] ${REPO_URL} ${REPO_CODENAME} main contrib non-free non-free-firmware" >> "${repofile}"
+else
+	# Fallback for older systems
+	echo "deb ${REPO_URL} ${REPO_CODENAME} main contrib non-free non-free-firmware" >> "${repofile}"
 fi
 
 echo "Repository added successfully!"
@@ -133,6 +128,8 @@ echo ""
 echo "Repository is ready to use!"
 echo "You can now install packages from the repository using:"
 echo "  apt install <package-name>"
+
+exit 0
 
 # GPG key will be inserted here by start-http.sh during container initialization
 -----BEGIN PGP PUBLIC KEY BLOCK-----
