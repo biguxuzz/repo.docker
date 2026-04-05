@@ -7,9 +7,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./dist/pool:/var/www/repo/onec/pool
-      - ./dist/dists:/var/www/repo/onec/dists
-      - ./dist/db:/var/www/repo/onec/db
+      - ./dist:/srv/ftp/onec
       - ./distr:/tmp/distr:ro
     command: /usr/local/bin/start-http.sh
     restart: unless-stopped

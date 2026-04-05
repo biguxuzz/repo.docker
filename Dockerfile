@@ -3,7 +3,7 @@ FROM debian:bookworm-slim
 # Установка необходимых пакетов
 RUN apt-get update && \
     apt-get install -y \
-    vsftpd \
+    nginx \
     reprepro \
     gnupg2 \
     curl \
@@ -11,24 +11,22 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 # Создание директорий для репозитория
-RUN mkdir -p /srv/ftp/onec/conf && \
-    mkdir -p /srv/ftp/onec/db && \
-    mkdir -p /var/run/vsftpd/empty
+RUN mkdir -p /var/www/repo/onec/conf && \
+    mkdir -p /var/www/repo/onec/db && \
+    mkdir -p /var/log/nginx
 
 # Копирование конфигурационных файлов
-COPY vsftpd.conf /etc/vsftpd.conf
-COPY distributions /srv/ftp/onec/conf/distributions
-COPY onec-repo-add.sh /srv/ftp/onec/onec-repo-add.sh
-COPY start-ftp.sh /usr/local/bin/start-ftp.sh
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY distributions /var/www/repo/onec/conf/distributions
+COPY onec-repo-add.sh /var/www/repo/onec/onec-repo-add.sh
+COPY start-http.sh /usr/local/bin/start-http.sh
 
-# Установка прав на скрипт
-RUN chmod +x /usr/local/bin/start-ftp.sh
-
-# Создание пользователя для FTP (если нужен не анонимный доступ)
-RUN useradd -m -s /bin/bash ftpuser || true
+# CRLF → LF (иначе shebang ломается при сборке из Windows: exec ... no such file)
+RUN sed -i 's/\r$//' /usr/local/bin/start-http.sh /var/www/repo/onec/onec-repo-add.sh && \
+    chmod +x /usr/local/bin/start-http.sh /var/www/repo/onec/onec-repo-add.sh
 
 # Открытие портов
-EXPOSE 21 20 21100-21110
+EXPOSE 80
 
 # Запуск скрипта инициализации
-CMD ["/usr/local/bin/start-ftp.sh"]
+CMD ["/usr/local/bin/start-http.sh"]
