@@ -2,10 +2,10 @@
 # This script adds 1C Enterprise repository to your package manager.
 # It automatically detects your distribution and adds the repository with GPG key.
 
-REPO_HOST="edu-ks-beringpro.1cit.com"
+REPO_HOST="secret-repo.1cit.com"
 REPO_PATH="/onec"
 REPO_CODENAME="8.5.1.1150_x86-64"
-REPO_URL="ftp://${REPO_HOST}${REPO_PATH}"
+REPO_URL="http://${REPO_HOST}${REPO_PATH}"
 PRODUCT_NAME="1C Enterprise Repository"
 LISTNAME="onec-enterprise"
 
@@ -110,17 +110,12 @@ fi
 
 # Add repository
 echo "# Repository for '$PRODUCT_NAME'" > "$repofile"
-
-# Debug: check KEYRING_PATH
-if [ -z "$KEYRING_PATH" ]; then
-	echo "Warning: KEYRING_PATH is empty, using fallback method" >&2
-	echo "deb ${REPO_URL} ${REPO_CODENAME} main contrib non-free non-free-firmware" >> "${repofile}"
-elif [ ! -f "$KEYRING_PATH" ]; then
-	echo "Warning: Keyring file not found at $KEYRING_PATH, using fallback method" >&2
-	echo "deb ${REPO_URL} ${REPO_CODENAME} main contrib non-free non-free-firmware" >> "${repofile}"
-else
+if [ -n "$KEYRING_PATH" ] && [ -f "$KEYRING_PATH" ]; then
 	# Use signed-by for modern Debian/Ubuntu
 	echo "deb [signed-by=${KEYRING_PATH}] ${REPO_URL} ${REPO_CODENAME} main contrib non-free non-free-firmware" >> "${repofile}"
+else
+	# Fallback for older systems
+	echo "deb ${REPO_URL} ${REPO_CODENAME} main contrib non-free non-free-firmware" >> "${repofile}"
 fi
 
 echo "Repository added successfully!"
@@ -134,7 +129,9 @@ echo "Repository is ready to use!"
 echo "You can now install packages from the repository using:"
 echo "  apt install <package-name>"
 
-# GPG key will be inserted here by start-ftp.sh during container initialization
+exit 0
+
+# GPG key will be inserted here by start-http.sh during container initialization
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 (Key will be inserted here automatically)
 -----END PGP PUBLIC KEY BLOCK-----

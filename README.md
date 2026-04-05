@@ -1,14 +1,15 @@
-# FTP Repository Docker Setup
+# HTTP Repository Docker Setup
 
-Этот проект создает Docker-контейнер с FTP-сервером (vsftpd) и репозиторием пакетов Debian/Ubuntu, управляемым через reprepro.
+Этот проект создает Docker-контейнер с HTTP-сервером (nginx) и репозиторием пакетов Debian/Ubuntu, управляемым через reprepro.
 
 ## Структура проекта
 
 - `docker-compose.yaml` - конфигурация Docker Compose
-- `Dockerfile` - образ с vsftpd и reprepro
-- `vsftpd.conf` - конфигурация FTP-сервера
+- `Dockerfile` - образ с nginx и reprepro
+- `nginx.conf` - конфигурация HTTP-сервера
 - `distributions` - конфигурация репозитория reprepro
-- `start-ftp.sh` - скрипт инициализации репозитория
+- `start-http.sh` - скрипт инициализации репозитория
+- `onec-repo-add.sh` - скрипт для добавления репозитория в систему
 - `distr/` - папка с deb-пакетами для добавления в репозиторий
 - `dist/` - папка, монтируемая в контейнер как репозиторий
 
@@ -23,13 +24,13 @@
 
 3. Репозиторий будет доступен по адресу:
    ```
-   ftp://edu-ks-beringpro.1cit.com/onec/8.5.1.1150_x86-64
+   http://secret-repo.1cit.com/onec/8.5.1.1150_x86-64
    ```
 
 4. Для добавления репозитория в систему используйте автоматический скрипт:
    ```bash
-   # Скачайте скрипт с FTP сервера
-   curl ftp://edu-ks-beringpro.1cit.com/onec/onec-repo-add.sh -o onec-repo-add.sh
+   # Скачайте скрипт с HTTP сервера
+   curl http://secret-repo.1cit.com/onec/onec-repo-add.sh -o onec-repo-add.sh
    
    # Запустите скрипт (требуются права root)
    sudo bash onec-repo-add.sh
@@ -46,10 +47,11 @@
    Если вы предпочитаете добавить репозиторий вручную:
    ```bash
    # Добавьте репозиторий в /etc/apt/sources.list.d/onec-enterprise.list
-   echo "deb ftp://edu-ks-beringpro.1cit.com/onec/8.5.1.1150_x86-64 main contrib non-free non-free-firmware" | sudo tee /etc/apt/sources.list.d/onec-enterprise.list
+   echo "deb http://secret-repo.1cit.com/onec/8.5.1.1150_x86-64 main contrib non-free non-free-firmware" | sudo tee /etc/apt/sources.list.d/onec-enterprise.list
    
-   # Добавьте GPG ключ
-   curl ftp://edu-ks-beringpro.1cit.com/onec/repo_gpg.key | sudo apt-key add -
+   # Добавьте GPG ключ (современный способ)
+   curl http://secret-repo.1cit.com/onec/repo_gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/onec-enterprise.gpg
+   sudo chmod 644 /etc/apt/keyrings/onec-enterprise.gpg
    
    # Обновите список пакетов
    sudo apt update
@@ -57,14 +59,13 @@
 
 ## Порты
 
-- `21` - FTP control port
-- `20` - FTP data port (активный режим)
-- `21100-21110` - FTP пассивный режим
+- `80` - HTTP порт
 
 ## Примечания
 
 - Репозиторий автоматически инициализируется при первом запуске
 - GPG ключ генерируется автоматически при первом запуске
 - Пакеты из папки `distr/` автоматически добавляются в репозиторий при запуске
-- Скрипт `onec-repo-add.sh` автоматически генерируется с встроенным GPG ключом и доступен на FTP сервере
+- Скрипт `onec-repo-add.sh` автоматически генерируется с встроенным GPG ключом и доступен на HTTP сервере
 - Для добавления новых пакетов поместите их в `distr/` и перезапустите контейнер
+- HTTP протокол поддерживается всеми современными дистрибутивами по умолчанию

@@ -1,25 +1,15 @@
-version: '3.8'
-
 services:
-  ftp-repo:
+  http-repo:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: ftp-repository
+    container_name: http-repository
     ports:
-      - "21:21"
-      - "20:20"
-      - "21100-21110:21100-21110"
+      - "80:80"
     volumes:
-      - ./dist:/srv/ftp/onec
+      - ./dist:/var/www/repo/onec
       - ./distr:/tmp/distr:ro
-    env_file:
-      - .env
-    environment:
-      - FTP_USER=${FTP_USER:-anonymous}
-      - FTP_PASS=${FTP_PASS:-}
-      - PASV_ADDRESS=${PASV_ADDRESS}
-    command: /usr/local/bin/start-ftp.sh
+    command: /usr/local/bin/start-http.sh
     restart: unless-stopped
     networks:
       - repo-network
